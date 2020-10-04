@@ -19,7 +19,6 @@ func mul*(r {.noalias.}: var BigInt, a, b: BigInt) =
   ## Multi-precision multiplication
   ## r <- a*b
   ##
-  ## `r` must not alias ``a`` or ``b``
   # TODO:
   # - relax the aliasing constraint
   # - use Karatsuba for large int

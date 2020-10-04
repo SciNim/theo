@@ -12,7 +12,10 @@ when sizeof(int) == 8 and not defined(Megalo32):
 else:
   type Word* = uint32
 
-const WordBitWidth* = sizeof(Word) * 8
+const
+  WordBitWidth* = sizeof(Word) * 8
+  Zero* = Word(0)
+  One* = Word(1)
 
 type
   Carry* = uint8  # distinct range[0'u8 .. 1]
