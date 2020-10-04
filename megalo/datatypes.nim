@@ -5,10 +5,6 @@
 #   * Apache v2 license (license terms in the root directory or at http://www.apache.org/licenses/LICENSE-2.0).
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
-# No exceptions allowed
-{.push raises: [].}
-{.push inline.}
-
 # ----------------------------------------------
 
 when sizeof(int) == 8 and not defined(Megalo32):
@@ -40,9 +36,6 @@ type
     limbs*: seq[Word]
     isNeg*: bool
 
-func setZero*(a: var BigInt) =
-  a.limbs.setLen(0)
-
-func setOne*(a: var BigInt) =
-  a.limbs.setLen(1)
-  a.limbs[0] = 1
+template len*(a: BigInt): int = a.limbs.len
+template `[]`*(a: BigInt, i: int): Word = a.limbs[i]
+template `[]=`*(a: var BigInt, i: int, v: Word) = a.limbs[i] = v
