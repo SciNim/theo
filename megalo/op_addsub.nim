@@ -9,6 +9,17 @@ import
   ./datatypes,
   ./primitives/addcarry_subborrow
 
+# Negate
+# --------------------------------------------------------
+
+func negate(r: var BigInt) =
+  ## Negation (physical)
+  ## In 2-complement
+  ## -x <=> not(x) + 1
+  var carry = Carry(1)
+  for i in 0 ..< r.len:
+    addC(carry, r[i], not(r[i]), Zero, carry)
+
 # Addition
 # --------------------------------------------------------
 
@@ -19,6 +30,7 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
   # - dispatch on fixed size add for add that fits in registers
   #   and build add recursively
   #   to avoid loop counters resetting carry chains.
+  # - Support negative inputs
   var maxP = a.unsafeAddr
   var minLen = b.len
   var maxLen = a.len
@@ -33,6 +45,8 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
     addC(carry, r[i], a[i], b[i], carry)
   for i in minLen ..< maxLen:
     addC(carry, r[i], maxP[][i], Zero, carry)
+    if carry == 0:
+      return
 
   if bool carry:
     r.limbs.setLen(r.len+1)
@@ -41,3 +55,30 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
 # Substraction
 # --------------------------------------------------------
 
+func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
+  ## BigInt substraction
+  # TODO:
+  # - relax the aliasing constraint
+  # - dispatch on fixed size sub for sub that fits in registers
+  #   and build sub recursively
+  #   to avoid loop counters resetting borrow chains.
+  var maxP = a.unsafeAddr
+  var minLen = b.len
+  var maxLen = a.len
+  if a.len < b.len:
+    maxP = b.unsafeAddr
+    minLen = a.len
+    maxLen = b.len
+
+  r.limbs.setLen(maxLen)
+  var borrow = Borrow(0)
+  for i in 0 ..< minLen:
+    subB(borrow, r[i], a[i], b[i], borrow)
+  for i in minLen ..< maxLen:
+    subB(borrow, r[i], maxP[][i], Zero, borrow)
+    if borrow == 0:
+      return
+
+  if bool borrow:
+    r.isNeg = not a.isNeg
+    r.negate()
