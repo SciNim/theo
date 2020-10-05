@@ -42,3 +42,14 @@ type
 template len*(a: BigInt): int = a.limbs.len
 template `[]`*(a: BigInt, i: int): Word = a.limbs[i]
 template `[]=`*(a: var BigInt, i: int, v: Word) = a.limbs[i] = v
+
+func normalize*(a: var BigInt) =
+  ## Canonicalize a bigint after computation
+  ## This logically removes extra unused words in the BigInt representation
+  ## to maintain the invariant that all allocated words are used.
+  # Note: The unused words are not returned to the GC
+  var extraWords = 0
+  for i in countdown(a.len-1, 0):
+    if a[i] != Zero:
+      break
+  a.setLen(a.len-extraWords)

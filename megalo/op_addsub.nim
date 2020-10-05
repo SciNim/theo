@@ -52,6 +52,8 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
     r.limbs.setLen(r.len+1)
     r.limbs[^1] = One
 
+  r.normalize()
+
 # Substraction
 # --------------------------------------------------------
 
@@ -82,3 +84,5 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
   if bool borrow:
     r.isNeg = not a.isNeg
     r.negate()
+
+  r.normalize()

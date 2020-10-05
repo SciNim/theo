@@ -5,15 +5,20 @@
 #   * Apache v2 license (license terms in the root directory or at http://www.apache.org/licenses/LICENSE-2.0).
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
-import ./datatypes
+import ../../constantine/datatypes
 
-# Comparisons
+# Canaries
 # --------------------------------------------------------------
+#
+# This file initializes a type with canary
+# to detect initialization bugs that are silent
+# when initialized from zero.
 
-func isZero*(a: BigInt): bool =
-  ## Returns true if zero, false otherwise
-  a.len == 0
+when sizeof(Word) == 8:
+  const Canary = Word(0xAAFACADEAAFACADE'u64)
+else:
+  const Canary = Word(0xAAFACADE'u32)
 
-func isOne*(a: BigInt): bool =
-  ## Returns true if zero, false otherwise
-  a.len == 1 and a[0] == One
+func canary*(T: typedesc): T =
+  for i in 0 ..< result.limbs.len:
+    result.limbs[i] = Canary

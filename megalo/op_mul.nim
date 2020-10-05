@@ -41,3 +41,5 @@ func mul*(r {.noalias.}: var BigInt, a, b: BigInt) =
     v = u
     u = t
     t = Word(0)
+
+  r.normalize()
