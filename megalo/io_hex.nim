@@ -18,7 +18,7 @@ import
 #
 # ############################################################
 
-func readHexChar(c: char): uint8 {.inline.}=
+func readHexChar(c: char): uint8 {.inline, raises:[ValueError].}=
   ## Converts an hex char to an int
   ## CT: leaks position of invalid input if any.
   case c

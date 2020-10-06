@@ -5,7 +5,8 @@
 #   * Apache v2 license (license terms in the root directory or at http://www.apache.org/licenses/LICENSE-2.0).
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
-import ./datatypes
+import
+  ./datatypes, ./op_init
 
 # No exceptions allowed
 {.push raises: [].}
@@ -29,7 +30,7 @@ func fromRawUintLE(
     acc_len = 0
 
   for src_idx in 0 ..< src.len:
-    let src_byte = SecretWord(src[src_idx])
+    let src_byte = Word(src[src_idx])
 
     # buffer reads
     acc = acc or (src_byte shl acc_len)
@@ -63,7 +64,7 @@ func fromRawUintBE(
     acc_len = 0
 
   for src_idx in countdown(src.len-1, 0):
-    let src_byte = SecretWord(src[src_idx])
+    let src_byte = Word(src[src_idx])
 
     # buffer reads
     acc = acc or (src_byte shl acc_len)
@@ -89,11 +90,14 @@ func fromRawUint*(
   ##
   ## Can work at compile-time
   ## from a canonical integer representation
+  dst.setBytewidth src.len
 
   when srcEndianness == littleEndian:
     dst.fromRawUintLE(src)
   else:
     dst.fromRawUintBE(src)
+
+  dst.normalize()
 
 func fromRawUint*(
         T: type BigInt,
@@ -103,10 +107,7 @@ func fromRawUint*(
   ## big-endian or little-endian unsigned representation
   ## And store it into a BigInt of size `bits`
   ##
-  ## Constant-Time:
-  ##   - no leaks
-  ##
-  ## Can work at compile-time to embed curve moduli
+  ## Can work at compile-time
   ## from a canonical integer representation
   result.fromRawUint(src, srcEndianness)
 
@@ -140,12 +141,12 @@ func exportRawUintLE(
 
   var
     src_idx, dst_idx = 0
-    acc: BaseType = 0
+    acc: Word = 0
     acc_len = 0
 
   var tail = dst.len
   while tail > 0:
-    let w = if src_idx < src.limbs.len: BaseType(src.limbs[src_idx])
+    let w = if src_idx < src.limbs.len: src.limbs[src_idx]
             else: 0
     inc src_idx
 
@@ -154,7 +155,7 @@ func exportRawUintLE(
       acc = w
       acc_len = WordBitWidth
     else:
-      when WordBitWidth == sizeof(SecretWord) * 8:
+      when WordBitWidth == sizeof(Word) * 8:
         let lo = acc
         acc = w
       else: # If using 63-bit (or less) out of uint64
@@ -162,11 +163,11 @@ func exportRawUintLE(
         dec acc_len
         acc = w shr (WordBitWidth - acc_len)
 
-      if tail >= sizeof(SecretWord):
+      if tail >= sizeof(Word):
         # Unrolled copy
         dst.blobFrom(src = lo, dst_idx, littleEndian)
-        dst_idx += sizeof(SecretWord)
-        tail -= sizeof(SecretWord)
+        dst_idx += sizeof(Word)
+        tail -= sizeof(Word)
       else:
         # Process the tail and exit
         when cpuEndian == littleEndian:
@@ -193,12 +194,12 @@ func exportRawUintBE(
 
   var
     src_idx = 0
-    acc: BaseType = 0
+    acc: Word = 0
     acc_len = 0
 
   var tail = dst.len
   while tail > 0:
-    let w = if src_idx < src.limbs.len: BaseType(src.limbs[src_idx])
+    let w = if src_idx < src.limbs.len: Word(src.limbs[src_idx])
             else: 0
     inc src_idx
 
@@ -207,7 +208,7 @@ func exportRawUintBE(
       acc = w
       acc_len = WordBitWidth
     else:
-      when WordBitWidth == sizeof(SecretWord) * 8:
+      when WordBitWidth == sizeof(Word) * 8:
         let lo = acc
         acc = w
       else: # If using 63-bit (or less) out of uint64
@@ -215,9 +216,9 @@ func exportRawUintBE(
         dec acc_len
         acc = w shr (WordBitWidth - acc_len)
 
-      if tail >= sizeof(SecretWord):
+      if tail >= sizeof(Word):
         # Unrolled copy
-        tail -= sizeof(SecretWord)
+        tail -= sizeof(Word)
         dst.blobFrom(src = lo, tail, bigEndian)
       else:
         # Process the tail and exit
@@ -236,7 +237,7 @@ func exportRawUintBE(
 func exportRawUint*(
         dst: var openarray[byte],
         src: BigInt,
-        dstEndianness: static Endianness) =
+        dstEndianness: static Endianness): bool =
   ## Serialize a bigint into its canonical big-endian or little endian
   ## representation.
   ## A destination buffer of size "(BigInt.bits + 7) div 8" at minimum is needed,
@@ -245,8 +246,12 @@ func exportRawUint*(
   ## If the buffer is bigger, output will be zero-padded left for big-endian
   ## or zero-padded right for little-endian.
   ## I.e least significant bit is aligned to buffer boundary
+  ##
+  ## Returns false if the destination buffer is too small
 
-  assert dst.len >= (BigInt.bits + 7) div 8, "BigInt -> Raw int conversion: destination buffer is too small"
+  if dst.len >= (BigInt.bits + 7) shr 3:
+    # "BigInt -> Raw int conversion: destination buffer is too small"
+    return false
 
   if BigInt.len == 0:
     zeroMem(dst, dst.len)
@@ -255,3 +260,5 @@ func exportRawUint*(
     exportRawUintLE(dst, src)
   else:
     exportRawUintBE(dst, src)
+
+  return true
