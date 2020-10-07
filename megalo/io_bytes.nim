@@ -6,7 +6,8 @@
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
 import
-  ./datatypes, ./op_init
+  ./datatypes,
+  ./op_init, ./op_bits, ./op_comparisons
 
 # No exceptions allowed
 {.push raises: [].}
@@ -249,12 +250,14 @@ func exportRawUint*(
   ##
   ## Returns false if the destination buffer is too small
 
-  if dst.len >= (BigInt.bits + 7) shr 3:
+  if dst.len < (src.bits + 7) shr 3:
     # "BigInt -> Raw int conversion: destination buffer is too small"
     return false
 
-  if BigInt.len == 0:
-    zeroMem(dst, dst.len)
+  if src.isZero():
+    for val in dst.mitems():
+      val = byte 0
+    return true
 
   when dstEndianness == littleEndian:
     exportRawUintLE(dst, src)

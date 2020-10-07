@@ -5,7 +5,7 @@
 #   * Apache v2 license (license terms in the root directory or at http://www.apache.org/licenses/LICENSE-2.0).
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
-import ../../constantine/datatypes
+import ../../megalo/datatypes
 
 # Canaries
 # --------------------------------------------------------------
@@ -20,5 +20,9 @@ else:
   const Canary = Word(0xAAFACADE'u32)
 
 func canary*(T: typedesc): T =
-  for i in 0 ..< result.limbs.len:
-    result.limbs[i] = Canary
+  when T is BigInt:
+    for i in 0 ..< result.limbs.len:
+      result.limbs[i] = Canary
+  elif T is array:
+    for i in 0 ..< result.len:
+      result[i] = cast[typeof(result[0])](Canary)

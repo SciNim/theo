@@ -7,7 +7,7 @@
 
 import
   ./datatypes,
-  ./io_bytes
+  ./io_bytes, ./op_bits
 
 # No exceptions allowed
 {.push raises: [].}
@@ -64,7 +64,7 @@ func countNonBlanks(hexStr: string, startPos: int): int =
     if c in blanks:
       result += 1
 
-func hexToPaddedByteArray(hexStr: string, output: var openArray[byte], order: static[Endianness]) =
+func hexToBytes(hexStr: string, output: var seq[byte], order: static[Endianness]) {.raises: [ValueError].} =
   ## Read a hex string and store it in a byte array `output`.
   ## The string may be shorter than the byte array.
   ##
@@ -82,7 +82,7 @@ func hexToPaddedByteArray(hexStr: string, output: var openArray[byte], order: st
   let maxStrSize = output.len * 2
   let size = hexStr.len - skip - nonBlanksCount
 
-  doAssert size <= maxStrSize, "size: " & $size & " (without blanks or prefix), maxSize: " & $maxStrSize
+  output.setLen(size shr 1)
 
   if size < maxStrSize:
     # include extra byte if odd length
@@ -124,16 +124,15 @@ func nativeEndianToHex(bytes: openarray[byte], order: static[Endianness]): strin
 #
 # ############################################################
 
-func fromHex*(T: type BigInt, s: string): T {.noInit.} =
+func fromHex*(T: type BigInt, s: string): T {.noInit, raises: [ValueError].} =
   ## Convert a hex string to BigInt that can hold
   ## the specified number of bits
   ##
   ## Hex string is assumed big-endian
 
   # 1. Convert to canonical uint
-  const canonLen = (T.bits + 8 - 1) div 8
-  var bytes: array[canonLen, byte]
-  hexToPaddedByteArray(s, bytes, bigEndian)
+  var bytes: seq[byte]
+  s.hexToBytes(bytes, bigEndian)
 
   # 2. Convert canonical uint to Big Int
   result.fromRawUint(bytes, bigEndian)
@@ -144,9 +143,9 @@ func appendHex*(dst: var string, big: BigInt, order: static Endianness = bigEndi
   ## Result is prefixed with 0x
 
   # 1. Convert Big Int to canonical uint
-  const canonLen = (big.bits + 8 - 1) div 8
-  var bytes: array[canonLen, byte]
-  exportRawUint(bytes, big, cpuEndian)
+  var bytes = newSeq[byte]((big.bits+7) shr 3)
+  let ok = exportRawUint(bytes, big, cpuEndian)
+  assert ok, "Unexpected error while converting a BigInt to hex."
 
   # 2 Convert canonical uint to hex
   dst.add bytes.nativeEndianToHex(order)

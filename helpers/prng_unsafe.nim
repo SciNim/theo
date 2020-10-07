@@ -171,9 +171,11 @@ func random_long01Seq(rng: var RngState, a: var BigInt) =
 # ------------------------------------------------------------
 
 func random_unsafe*(rng: var RngState, T: typedesc): T =
-  ## Create a random BigInt
-  rng.random_unsafe(result)
-
+  ## Create a random BigInt or unsigned int
+  when T is SomeNumber:
+    cast[T](rng.next()) # TODO: Rely on casting integer actually converting in C (i.e. uint64->uint32 is valid)
+  else:
+    rng.random_unsafe(result)
 
 func random_highHammingWeight*(rng: var RngState, T: typedesc): T =
   ## Create a random BigInt
