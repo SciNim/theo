@@ -235,6 +235,10 @@ func exportRawUintBE(
             dst[tail-1-i] = toByte(lo shr ((tail-i)*8))
         return
 
+func byteLen*(a: BigInt): int =
+  ## Length in bytes to serialize the bigint
+  (a.bits + 7) shr 3
+
 func exportRawUint*(
         dst: var openarray[byte],
         src: BigInt,
@@ -250,7 +254,7 @@ func exportRawUint*(
   ##
   ## Returns false if the destination buffer is too small
 
-  if dst.len < (src.bits + 7) shr 3:
+  if dst.len < src.byteLen:
     # "BigInt -> Raw int conversion: destination buffer is too small"
     return false
 

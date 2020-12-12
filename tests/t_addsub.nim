@@ -16,8 +16,6 @@ import  std/[unittest,times],
         ],
         ../megalo/datatypes,
         ../helpers/prng_unsafe,
-        # Test helpers
-        ./support/canaries
 
 # Random seed for reproducibility
 var rng: RngState
@@ -27,12 +25,10 @@ echo "\n------------------------------------------------------\n"
 echo "test_addsub xoshiro512** seed: ", seed
 
 proc main() =
-  suite "Arithmetic operations - Addition with no aliasing " & " [" & $WordBitwidth & "-bit mode]":
+  suite "Arithmetic operations - Addition without no aliasing " & " [" & $WordBitwidth & "-bit mode]":
     test "Adding 2 zeros":
       var a = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
       let b = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
-
-      echo "a: ", a
 
       var r: BigInt
       r.add(a, b)
@@ -41,7 +37,7 @@ proc main() =
         b.isZero()
         r.isZero()
 
-    test "Adding 1 zero - real addition":
+    test "Adding 1 zero":
       block:
         var a = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
         let b = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
@@ -104,4 +100,76 @@ proc main() =
         check:
           r == c
 
+proc main_alias() =
+  suite "Arithmetic operations - Addition with aliasing " & " [" & $WordBitwidth & "-bit mode]":
+    test "Adding 2 zeros":
+      var a = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
+      let b = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
+
+      a.add(a, b)
+      check:
+        a.isZero()
+        b.isZero()
+
+    test "Adding 1 zero":
+      block:
+        var a = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
+        let b = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+
+        a.add(a, b)
+        check:
+          a.isOne()
+          b.isOne()
+      block:
+        var a = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+        let b = BigInt.fromHex"0x00000000_00000000_00000000_00000000"
+
+        a.add(a, b)
+        check:
+          a.isOne()
+          b.isZero()
+
+    test "Adding non-zeros":
+      block:
+        var a = BigInt.fromHex"0x00000000_00000001_00000000_00000000"
+        let b = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+
+        a.add(a, b)
+        let c = BigInt.fromHex"0x00000000_00000001_00000000_00000001"
+        check:
+          a == c
+      block:
+        var a = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+        let b = BigInt.fromHex"0x00000000_00000001_00000000_00000000"
+
+        a.add(a, b)
+        let c = BigInt.fromHex"0x00000000_00000001_00000000_00000001"
+        check:
+          a == c
+
+    test "Addition limbs carry":
+      block:
+        var a = BigInt.fromHex"0x00000000_FFFFFFFF_FFFFFFFF_FFFFFFFE"
+        let b = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+
+        a.add(a, b)
+        let c = BigInt.fromHex"0x00000000_FFFFFFFF_FFFFFFFF_FFFFFFFF"
+        check:
+          a == c
+
+      block:
+        var a = BigInt.fromHex"0x00000000_FFFFFFFF_FFFFFFFF_FFFFFFFF"
+        let b = BigInt.fromHex"0x00000000_00000000_00000000_00000001"
+
+        a.add(a, b)
+        let c = BigInt.fromHex"0x00000001_00000000_00000000_00000000"
+        check:
+          a == c
+
 main()
+main_alias()
+
+# TODO: compile-time
+# static:
+#   main()
+#   main_alias()

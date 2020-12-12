@@ -32,13 +32,16 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
   #   and build add recursively
   #   to avoid loop counters resetting carry chains.
   # - Support negative inputs
+  # - Support compile-time
   var maxP = a.unsafeAddr
   var minLen = b.len
   var maxLen = a.len
+  r.isNeg = a.isNeg # sign of the largest magnitude
   if a.len < b.len:
     maxP = b.unsafeAddr
     minLen = a.len
     maxLen = b.len
+    r.isNeg = b.isNeg
 
   r.limbs.setLen(maxLen)
   var carry = Carry(0)
@@ -46,8 +49,6 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
     addC(carry, r[i], a[i], b[i], carry)
   for i in minLen ..< maxLen:
     addC(carry, r[i], maxP[][i], Zero, carry)
-    if carry == 0:
-      return
 
   if bool carry:
     r.limbs.setLen(r.len+1)
@@ -65,6 +66,11 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
   # - dispatch on fixed size sub for sub that fits in registers
   #   and build sub recursively
   #   to avoid loop counters resetting borrow chains.
+  # - Support compile-time
+  if a.isNeg xor b.isNeg:
+    r.isNeg = a.isNeg
+    r.add(a, b)
+
   var maxP = a.unsafeAddr
   var minLen = b.len
   var maxLen = a.len
@@ -77,13 +83,14 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
   var borrow = Borrow(0)
   for i in 0 ..< minLen:
     subB(borrow, r[i], a[i], b[i], borrow)
-  for i in minLen ..< maxLen:
-    subB(borrow, r[i], maxP[][i], Zero, borrow)
-    if borrow == 0:
-      return
 
-  if bool borrow:
+  if bool borrow: # a < b
     r.isNeg = not a.isNeg
     r.negate()
+  else:
+    r.isNeg = a.isNeg
+
+  for i in minLen ..< maxLen:
+    subB(borrow, r[i], maxP[][i], Zero, borrow)
 
   r.normalize()
