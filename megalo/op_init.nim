@@ -32,9 +32,11 @@ func normalize*(a: var BigInt) =
   ## to maintain the invariant that all allocated words are used.
   # Note: The unused words are not returned to the GC
   var extraWords = 0
+  # TODO: we might want to do a binary search
   for i in countdown(a.len-1, 0):
     if a[i] != Zero:
       break
+    inc extraWords
   a.limbs.setLen(a.len-extraWords)
 
 # Bitwise

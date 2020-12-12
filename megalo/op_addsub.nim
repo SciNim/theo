@@ -7,7 +7,8 @@
 
 import
   ./datatypes,
-  ./primitives/addcarry_subborrow
+  ./primitives/addcarry_subborrow,
+  ./op_init
 
 # Negate
 # --------------------------------------------------------
