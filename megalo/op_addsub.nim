@@ -33,12 +33,10 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
   #   to avoid loop counters resetting carry chains.
   # - Support negative inputs
   # - Support compile-time
-  var maxP = a.unsafeAddr
   var minLen = b.len
   var maxLen = a.len
   r.isNeg = a.isNeg # sign of the largest magnitude
   if a.len < b.len:
-    maxP = b.unsafeAddr
     minLen = a.len
     maxLen = b.len
     r.isNeg = b.isNeg
@@ -47,8 +45,12 @@ func add*(r {.noalias.}: var BigInt, a, b: BigInt) =
   var carry = Carry(0)
   for i in 0 ..< minLen:
     addC(carry, r[i], a[i], b[i], carry)
-  for i in minLen ..< maxLen:
-    addC(carry, r[i], maxP[][i], Zero, carry)
+  if a.len < b.len:
+    for i in minLen ..< maxLen:
+      addC(carry, r[i], Zero, b[i], carry)
+  else:
+    for i in minLen ..< maxLen:
+      addC(carry, r[i], a[i], Zero, carry)
 
   if bool carry:
     r.limbs.setLen(r.len+1)
@@ -72,11 +74,9 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
     r.isNeg = a.isNeg
     return
 
-  var maxP = a.unsafeAddr
   var minLen = b.len
   var maxLen = a.len
   if a.len < b.len:
-    maxP = b.unsafeAddr
     minLen = a.len
     maxLen = b.len
 
