@@ -67,9 +67,10 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
   #   and build sub recursively
   #   to avoid loop counters resetting borrow chains.
   # - Support compile-time
-  if a.isNeg xor b.isNeg:
-    r.isNeg = a.isNeg
+  if a.isNeg != b.isNeg: # Different signs, add magnitudes
     r.add(a, b)
+    r.isNeg = a.isNeg
+    return
 
   var maxP = a.unsafeAddr
   var minLen = b.len
@@ -83,14 +84,16 @@ func sub*(r {.noalias.}: var BigInt, a, b: BigInt) =
   var borrow = Borrow(0)
   for i in 0 ..< minLen:
     subB(borrow, r[i], a[i], b[i], borrow)
-
-  if bool borrow: # a < b
-    r.isNeg = not a.isNeg
-    r.negate()
+  if a.len < b.len:
+    for i in minLen ..< maxLen:
+      subB(borrow, r[i], Zero, b[i], borrow)
   else:
-    r.isNeg = a.isNeg
+    for i in minLen ..< maxLen:
+      subB(borrow, r[i], a[i], Zero, borrow)
 
-  for i in minLen ..< maxLen:
-    subB(borrow, r[i], maxP[][i], Zero, borrow)
+  if bool borrow:
+    borrow = Borrow(0)
+    for i in 0 ..< maxLen:
+      subB(borrow, r[i], Zero, r[i], borrow)
 
   r.normalize()

@@ -127,8 +127,6 @@ proc main_sub(numSizes: int) =
   mpz_init(b)
 
   for i in 0 ..< numSizes:
-    echo i
-
     let aBits = bitSizeRNG.rand(126 .. 2048)
     let bBits = bitSizeRNG.rand(126 .. 2048)
     let rBits = bitSizeRNG.rand(62 .. 4096+128)
@@ -201,4 +199,4 @@ proc main_sub(numSizes: int) =
 
 
 main_add(128)
-main_sub(128)
+main_sub(16384)
