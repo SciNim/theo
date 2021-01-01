@@ -15,7 +15,7 @@ import  std/[unittest,times],
           op_comparisons
         ],
         ../megalo/datatypes,
-        ../helpers/prng_unsafe,
+        ../helpers/prng_unsafe
 
 # Random seed for reproducibility
 var rng: RngState
@@ -167,9 +167,8 @@ proc main_alias() =
           a == c
 
 main()
-main_alias()
+# main_alias() # broken if we don't use raw pointer after b40959fea84e9d6aa7eacfdafd6af979fc4e4e1b
 
-# TODO: compile-time
 # static:
 #   main()
 #   main_alias()
