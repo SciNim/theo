@@ -16,17 +16,15 @@ import
 # Multiplication
 # --------------------------------------------------------------
 
-func mul*(r {.noalias.}: var BigInt, a, b: BigInt) =
+func mul*(r: var BigInt, a, b: BigInt) =
   ## Multi-precision multiplication
   ## r <- a*b
   ##
   # TODO:
-  # - relax the aliasing constraint
   # - use Karatsuba for large int
   # - dispatch on fixed size mul for mul that fits in registers
   #   and build mul recursively
   #   to avoid loop counters resetting carry chains.
-
   r.limbs.setLen(a.len+b.len)
 
   # We use Product Scanning / Comba multiplication

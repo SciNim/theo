@@ -29,13 +29,16 @@ when sizeof(int) == 8 and GCC_Compatible:
     uint128*{.importc: "unsigned __int128".} = object
 
 type
-  BigInt* = object
+  BigInt* {.byref.} = object
     ## A multi-precision integer
     # Representation
     # - Limbs: store the integer in a*2^w + b*2^(w-1) + ... + z*2^0
     #   Limb-endianness is little-endian, least significant limb at position 0
     #   Word-endianness is native-endian.
     # - isNeg: a flag that indicates if the integer is negative
+
+    # TODO: why is byref needed for correctness?
+    # Data disappears in mul otherwise
     limbs*: seq[Word]
     isNeg*: bool
 
