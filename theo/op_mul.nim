@@ -7,6 +7,7 @@
 
 import
   ./datatypes,
+  ./op_init,
   ./primitives/extended_precision
 
 # No exceptions allowed

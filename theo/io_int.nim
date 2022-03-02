@@ -16,5 +16,5 @@ import ./datatypes
 func fromInt*(a: var BigInt, n: SomeUnsignedInt) {.inline.} =
   ## Create a BigInt from an unsigned int
   ## Assumes the same endianness
-  a.setLen(1)
+  a.limbs.setLen(1)
   a.limbs[0] = Word(n)
