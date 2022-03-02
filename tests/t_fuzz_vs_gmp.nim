@@ -1,12 +1,12 @@
 import  std/[unittest,times,strutils],
-        ../megalo/[
+        ../theo/[
           io_hex,
           io_bytes,
           io_int,
           op_addsub,
           op_comparisons
         ],
-        ../megalo/datatypes,
+        ../theo/datatypes,
         ../helpers/prng_unsafe,
         # Third-party
         gmp, stew/byteutils
@@ -92,7 +92,7 @@ proc main_add(numSizes: int) =
     # Addition
     r.mpz_add(a, b)
 
-    # Megalo
+    # Theo
     var rTest: BigInt
     rTest.add(aTest, bTest)
 
@@ -107,7 +107,7 @@ proc main_add(numSizes: int) =
     var rMegalo = newSeq[byte](rLen)
     doAssert rMegalo.exportRawUint(rTest, bigEndian)
 
-    # Note: in bigEndian, GMP aligns left while Megalo aligns right
+    # Note: in bigEndian, GMP aligns left while Theo aligns right
     doAssert rGMP.toOpenArray(0, rW-1) == rMegalo.toOpenArray(rLen-rW, rLen-1), block:
       # Reexport as bigEndian for debugging
       discard mpz_export(aBuf[0].addr, aW.addr, GMP_MostSignificantWordFirst, 1, GMP_WordNativeEndian, 0, a)
@@ -117,8 +117,8 @@ proc main_add(numSizes: int) =
       "  b (" & align($bBits, 4) & "-bit):   " & bBuf.toOpenArray(0, bW-1).toHex & "\n" &
       "into r of size " & align($rBits, 4) & "-bit failed:" & "\n" &
       "  GMP:     " & rGMP.toHex() & "\n" &
-      "  Megalo:  " & rMegalo.toHex() & "\n" &
-      "(Note that GMP aligns bytes left while Megalo aligns bytes right)"
+      "  Theo:  " & rMegalo.toHex() & "\n" &
+      "(Note that GMP aligns bytes left while Theo aligns bytes right)"
 
 proc main_sub(numSizes: int) =
   var r, a, b: mpz_t
@@ -169,7 +169,7 @@ proc main_sub(numSizes: int) =
     # Addition
     r.mpz_sub(a, b)
 
-    # Megalo
+    # Theo
     var rTest: BigInt
     rTest.sub(aTest, bTest)
 
@@ -184,7 +184,7 @@ proc main_sub(numSizes: int) =
     var rMegalo = newSeq[byte](rLen)
     doAssert rMegalo.exportRawUint(rTest, bigEndian)
 
-    # Note: in bigEndian, GMP aligns left while Megalo aligns right
+    # Note: in bigEndian, GMP aligns left while Theo aligns right
     doAssert rGMP.toOpenArray(0, rW-1) == rMegalo.toOpenArray(rLen-rW, rLen-1), block:
       # Reexport as bigEndian for debugging
       discard mpz_export(aBuf[0].addr, aW.addr, GMP_MostSignificantWordFirst, 1, GMP_WordNativeEndian, 0, a)
@@ -194,8 +194,8 @@ proc main_sub(numSizes: int) =
       "  b (" & align($bBits, 4) & "-bit):   " & bBuf.toOpenArray(0, bW-1).toHex & "\n" &
       "into r of size " & align($rBits, 4) & "-bit failed:" & "\n" &
       "  GMP:     " & rGMP.toHex() & "\n" &
-      "  Megalo:  " & rMegalo.toHex() & "\n" &
-      "(Note that GMP aligns bytes left while Megalo aligns bytes right)"
+      "  Theo:  " & rMegalo.toHex() & "\n" &
+      "(Note that GMP aligns bytes left while Theo aligns bytes right)"
 
 
 main_add(128)

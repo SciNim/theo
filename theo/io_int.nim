@@ -1,4 +1,4 @@
-# Megalo
+# Theo
 # Copyright 2020-Present Mamy André-Ratsimbazafy
 # Licensed and distributed under either of
 #   * MIT license (license terms in the root directory or at http://opensource.org/licenses/MIT).
@@ -7,13 +7,14 @@
 
 import ./datatypes
 
-# Comparisons
-# --------------------------------------------------------------
+# No exceptions allowed
+{.push raises: [].}
 
-func isZero*(a: BigInt): bool =
-  ## Returns true if zero, false otherwise
-  a.len == 0
+# Words
+# -----------------------------------------------------------
 
-func isOne*(a: BigInt): bool =
-  ## Returns true if zero, false otherwise
-  a.len == 1 and a[0] == One
+func fromInt*(a: var BigInt, n: SomeUnsignedInt) {.inline.} =
+  ## Create a BigInt from an unsigned int
+  ## Assumes the same endianness
+  a.setLen(1)
+  a.limbs[0] = Word(n)

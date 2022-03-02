@@ -7,12 +7,12 @@
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
 import  std/[unittest,times],
-        ../megalo/[
+        ../theo/[
           io_hex,
           io_bytes,
           io_int
         ],
-        ../megalo/datatypes,
+        ../theo/datatypes,
         ../helpers/prng_unsafe,
         # Test helpers
         ./support/canaries

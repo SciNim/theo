@@ -1,4 +1,4 @@
-# Megalo
+# Theo
 # Copyright 2020-Present Mamy André-Ratsimbazafy
 # Licensed and distributed under either of
 #   * MIT license (license terms in the root directory or at http://opensource.org/licenses/MIT).
@@ -6,8 +6,8 @@
 # at your option. This file may not be copied, modified, or distributed except according to those terms.
 
 import
-  ../megalo/[datatypes, op_bits, io_bytes],
-  ../megalo/primitives/bithacks
+  ../theo/[datatypes, op_bits, io_bytes],
+  ../theo/primitives/bithacks
 
 # ############################################################
 #

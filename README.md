@@ -1,8 +1,12 @@
-# Megalo / μεγάλο, an optimized bigint library for Nim
+# Theo, an optimized bigint and number-theory library for Nim
 
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![Stability: experimental](https://img.shields.io/badge/stability-experimental-orange.svg)\
+
+## Disclaimer
+
+This library is victim of README-driven development and is currently not fit for consumption.
 
 ## License
 
